@@ -12,9 +12,9 @@ Each theme has its own folder. Each level is a separate file inside it.
 
 | Theme | Level 1 | Level 2 | Level 3 |
 |---|---|---|---|
-| `fruit-orchard/` | `level1.html` | planned | planned |
-| `under-the-sea/` | `level1.html` | planned | planned |
-| `toy-box/` | `level1.html` | planned | planned |
+| `fruit-orchard` | `level1.html` | planned | planned |
+| `under-the-sea` | `level1.html` | planned | planned |
+| `toy-box` | `level1.html` | planned | planned |
 
 Open `index.html` to play from one menu.
 
