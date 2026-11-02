@@ -9,6 +9,26 @@
   const NOUN=CFG.noun;
   const LINE=CFG.line;
   const CONFCOLS=CFG.confcols;
+  const LEVEL=CFG.level||1;   /* 1 = count objects, 2 = number words, 3 = dot patterns */
+
+  /* words and messages for each level; Level 1 keeps its original wording */
+  const TEXT={
+    1:{ item:'group', pickNext:'Now pick a group.', tapHint:'Tap a number, then tap a group.',
+        yes:(n,g)=>'That is '+n+' '+g.name+'.', no:g=>'Count again. That group has '+g.count+'.',
+        tryAgain:'Try counting again.', hint:n=>'Count the '+NOUN+'. Which group has '+n+'?',
+        hintGuide:'Count them slowly.', line:'Draw a line to the matching group.' },
+    2:{ item:'word', pickNext:'Now pick a word.', tapHint:'Tap a number, then tap a word.',
+        yes:(n,g)=>n+' is '+g.word+'.', no:g=>'Listen again. That word is '+g.word+'.',
+        tryAgain:'Listen and try again.', hint:n=>'Tap a word to hear it. Which word is '+n+'?',
+        hintGuide:'Tap a word to hear it.', line:'Draw a line to the matching word.' },
+    3:{ item:'card', pickNext:'Now pick the dots.', tapHint:'Tap a number, then tap the dots.',
+        yes:(n,g)=>'That is '+n+' dots.', no:g=>'Count the dots again. That card has '+g.count+'.',
+        tryAgain:'Count the dots again.', hint:n=>'Count the dots. Which card has '+n+'?',
+        hintGuide:'Count the dots slowly.', line:'Draw a line to the matching dots.' }
+  }[LEVEL];
+
+  /* one rule decides a match on every level: the card shows the same amount as the number */
+  function isMatch(n,g){ return g.count===n; }
 
   const $=id=>document.getElementById(id);
   const stage=$('stage'), numCol=$('numCol'), bCol=$('basketCol'), svg=$('lines');
@@ -94,6 +114,15 @@
   /* ---------- build ---------- */
   function fruitHTML(g){ let h='<div class="fruits">';
     for(let i=0;i<g.count;i++) h+='<span class="f '+g.kind+'"></span>'; return h+'</div>'; }
+  /* dice layout: which of the 9 grid cells hold a dot */
+  const DICE={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+  function cardHTML(g){
+    if(LEVEL===2) return '<div class="fruits"><span class="word">'+g.word+'</span></div>';
+    if(LEVEL===3){ let h='<div class="fruits"><div class="die">';
+      for(let c=0;c<9;c++) h+='<span class="'+(DICE[g.count].indexOf(c)>=0?'pip':'')+'"></span>';
+      return h+'</div></div>'; }
+    return fruitHTML(g);
+  }
   function build(){
     numCol.innerHTML=''; bCol.innerHTML=''; dotsWrap.innerHTML='';
     NUMS.forEach(n=>{
@@ -104,11 +133,11 @@
     });
     GROUPS.forEach((g,i)=>{
       const d=document.createElement('div');
-      d.className='basket'; d.dataset.i=i; d.innerHTML=fruitHTML(g);
+      d.className='basket'; d.dataset.i=i; d.innerHTML=cardHTML(g);
       d.addEventListener('pointerdown',e=>{ e.preventDefault(); dropBasket(d); });
       bCol.appendChild(d);
     });
-    for(let i=0;i<4;i++){ const dot=document.createElement('div'); dot.className='dot'; dotsWrap.appendChild(dot); }
+    for(let i=0;i<NUMS.length;i++){ const dot=document.createElement('div'); dot.className='dot'; dotsWrap.appendChild(dot); }
   }
   function center(el,right){
     const r=el.getBoundingClientRect(), s=stage.getBoundingClientRect(), sc=s.width/1194;
@@ -140,7 +169,7 @@
     if(d.classList.contains('done')) return;
     if(selected) selected.classList.remove('sel');
     selected=d; d.classList.add('sel'); hideFb(); sPick();
-    guide('Now pick a group.');
+    guide(TEXT.pickNext);
     const start=center(d,true);
     if(dragLine){ dragLine.remove(); dragLine=null; }
     dragLine=drawLine(start,start,'#F5B33C');
@@ -164,24 +193,27 @@
     if(paused) return;
     if(b.classList.contains('done')) return;
     if(!selected){
-      showFb('tip','Pick a number first','Tap a number, then tap a group.');
+      showFb('tip','Pick a number first',TEXT.tapHint);
       guide('Tap a number first.');
+      if(LEVEL===2) speak(GROUPS[+b.dataset.i].word);   /* tapping a word reads it aloud */
       return;
     }
     const n=+selected.dataset.n, i=+b.dataset.i, g=GROUPS[i];
-    if(g.count===n){
+    if(isMatch(n,g)){
       solved[n]=i;
       selected.classList.remove('sel'); selected.classList.add('done');
       b.classList.add('done'); selected=null;
       stars++; starTxt.innerHTML='&#9733; '+stars;
       redraw(); updDots(); sCorrect();
-      const left=4-Object.keys(solved).length;
+      const left=NUMS.length-Object.keys(solved).length;
       if(left===0){ showFb('good','&#11088; Well done!','You matched them all.'); guide('Hooray!'); setTimeout(finish,900); }
-      else { showFb('good','&#127881; Yes!','That is '+n+' '+g.name+'. '+left+' to go.'); guide('Great! Keep going.'); }
+      else { showFb('good','&#127881; Yes!',TEXT.yes(n,g)+' '+left+' to go.'); guide('Great! Keep going.'); }
+      if(LEVEL===2) speak(n+' is '+g.word);
     } else {
       b.classList.add('shake'); setTimeout(()=>b.classList.remove('shake'),420); sWrong();
-      showFb('bad','Not yet!','Count again. That group has '+g.count+'.');
-      guide('Try counting again.');
+      showFb('bad','Not yet!',TEXT.no(g));
+      guide(TEXT.tryAgain);
+      if(LEVEL===2) speak('That word is '+g.word);
       if(selected){ selected.classList.remove('sel'); selected=null; }
     }
   }
@@ -198,18 +230,18 @@
     const rem=NUMS.filter(n=>!(n in solved)); if(!rem.length) return;
     const n=rem[0];
     const ne=numCol.querySelector('[data-n="'+n+'"]');
-    const idx=GROUPS.findIndex(g=>g.count===n);
+    const idx=GROUPS.findIndex(g=>isMatch(n,g));
     const be=bCol.querySelector('[data-i="'+idx+'"]');
     if(ne) ne.classList.add('hintpulse');
     if(be) be.classList.add('hintpulse');
     setTimeout(()=>{ if(ne)ne.classList.remove('hintpulse'); if(be)be.classList.remove('hintpulse'); },2200);
-    showFb('tip','&#128161; Try this one','Count the '+NOUN+'. Which group has '+n+'?');
-    guide('Count them slowly.');
+    showFb('tip','&#128161; Try this one',TEXT.hint(n));
+    guide(TEXT.hintGuide);
   });
   $('speakerBtn').addEventListener('click',e=>{
     e.stopPropagation(); sClick(); guide(PROMPT);
-    showFb('tip','&#128266; '+PROMPT,'Draw a line to the matching group.');
-    speak(PROMPT+' Draw a line to the matching group.');
+    showFb('tip','&#128266; '+PROMPT,TEXT.line);
+    speak(PROMPT+' '+TEXT.line);
   });
 
   /* ---------- confetti ---------- */
