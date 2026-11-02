@@ -61,6 +61,17 @@
   }
   function musicStop(){ if(musicTimer){ clearInterval(musicTimer); musicTimer=null; } }
 
+  /* spoken words: reads text aloud with the browser voice, so children who cannot read yet can still play */
+  function speak(text){
+    if(muted) return;
+    const ss=window.speechSynthesis;
+    if(!ss || !window.SpeechSynthesisUtterance) return;   /* no voice on this device: the text bubble still shows */
+    ss.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='en-US'; u.rate=0.85; u.pitch=1.1;
+    ss.speak(u);
+  }
+
   /* mute: silences the master gain instantly, so already-scheduled notes stop too */
   function setMuted(m){
     muted=m;
@@ -69,7 +80,8 @@
       MASTER.gain.cancelScheduledValues(AC.currentTime);
       MASTER.gain.setValueAtTime(m?0:1, AC.currentTime);
     }
-    if(m) musicStop(); else if(!startOv.classList.contains('show')) musicStart();
+    if(m){ musicStop(); if(window.speechSynthesis) window.speechSynthesis.cancel(); }
+    else if(!startOv.classList.contains('show')) musicStart();
   }
 
   /* ---------- scale to fit ---------- */
@@ -197,6 +209,7 @@
   $('speakerBtn').addEventListener('click',e=>{
     e.stopPropagation(); sClick(); guide(PROMPT);
     showFb('tip','&#128266; '+PROMPT,'Draw a line to the matching group.');
+    speak(PROMPT+' Draw a line to the matching group.');
   });
 
   /* ---------- confetti ---------- */
