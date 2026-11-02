@@ -72,12 +72,6 @@
     box-shadow:0 6px 0 var(--accent-shadow, rgba(0,0,0,.12)), 0 10px 22px rgba(0,0,0,.12);
     transition:transform .16s ease, box-shadow .16s ease;
   }
-  .card:hover, .card:focus-visible{
-    transform:translateY(-5px);
-    box-shadow:0 11px 0 var(--accent-shadow), 0 16px 30px rgba(0,0,0,.16);
-  }
-  .card:active{transform:translateY(1px); box-shadow:0 3px 0 var(--accent-shadow);}
-  .card:focus-visible{outline:4px solid var(--ink); outline-offset:3px;}
 
   .card.orchard{--accent:var(--orchard); --accent-shadow:#3A7C43; --tint:var(--orchard-tint);}
   .card.sea{--accent:var(--sea); --accent-shadow:#0B6350; --tint:var(--sea-tint);}
@@ -116,6 +110,16 @@
   }
   .group .f{animation:bob 2.6s ease-in-out infinite; animation-delay:var(--b,0s);}
   @keyframes bob{0%,100%{transform:translateY(0);} 50%{transform:translateY(-5px);}}
+
+  .levels{margin-top:auto; display:grid; grid-template-columns:repeat(3,1fr); gap:8px;}
+  .lvl{background:var(--accent); color:#fff; border-radius:16px; padding:10px 4px;
+    text-align:center; text-decoration:none; box-shadow:0 4px 0 var(--accent-shadow);
+    transition:transform .12s, box-shadow .12s; display:flex; flex-direction:column;}
+  .lvl b{font-size:17px; font-weight:900;}
+  .lvl span{font-size:13px; font-weight:700; opacity:.9;}
+  .lvl:hover{transform:translateY(-3px);}
+  .lvl:active{transform:translateY(2px); box-shadow:0 1px 0 var(--accent-shadow);}
+  .lvl:focus-visible{outline:4px solid var(--ink); outline-offset:3px;}
 
   .play{
     margin-top:auto;
@@ -164,13 +168,13 @@
 <header>
   <div class="bar">
     <h1>Count and Match</h1>
-    <p class="sub">Three counting games for young learners. Pick a place to play.</p>
+    <p class="sub">Three counting games for young learners. Pick a place and a level.</p>
   </div>
 </header>
 
 <main class="shelf">
 
-  <a class="card orchard" href="fruit-orchard/level1.html">
+  <div class="card orchard">
     <h2>Fruit Orchard</h2>
     <p class="what">Count the fruits and match them to the right number.</p>
     <div class="match">
@@ -182,10 +186,14 @@
         <span class="f apple" style="--b:.4s"></span>
       </div>
     </div>
-    <div class="play">Play</div>
-  </a>
+    <div class="levels">
+      <a class="lvl" href="fruit-orchard/level1.html"><b>Level 1</b><span>Count</span></a>
+      <a class="lvl" href="fruit-orchard/level2.html"><b>Level 2</b><span>Words</span></a>
+      <a class="lvl" href="fruit-orchard/level3.html"><b>Level 3</b><span>Dots</span></a>
+    </div>
+  </div>
 
-  <a class="card sea" href="under-the-sea/level1.html">
+  <div class="card sea">
     <h2>Under the Sea</h2>
     <p class="what">Count the animals and match them to the right number.</p>
     <div class="match">
@@ -196,10 +204,14 @@
         <span class="f fish" style="--b:.35s"></span>
       </div>
     </div>
-    <div class="play">Play</div>
-  </a>
+    <div class="levels">
+      <a class="lvl" href="under-the-sea/level1.html"><b>Level 1</b><span>Count</span></a>
+      <a class="lvl" href="under-the-sea/level2.html"><b>Level 2</b><span>Words</span></a>
+      <a class="lvl" href="under-the-sea/level3.html"><b>Level 3</b><span>Dots</span></a>
+    </div>
+  </div>
 
-  <a class="card toybox" href="toy-box/level1.html">
+  <div class="card toybox">
     <h2>Toy Box</h2>
     <p class="what">Count the toys and match them to the right number.</p>
     <div class="match">
@@ -211,8 +223,12 @@
         <span class="f teddy" style="--b:.5s"></span>
       </div>
     </div>
-    <div class="play">Play</div>
-  </a>
+    <div class="levels">
+      <a class="lvl" href="toy-box/level1.html"><b>Level 1</b><span>Count</span></a>
+      <a class="lvl" href="toy-box/level2.html"><b>Level 2</b><span>Words</span></a>
+      <a class="lvl" href="toy-box/level3.html"><b>Level 3</b><span>Dots</span></a>
+    </div>
+  </div>
 
 </main>
 
